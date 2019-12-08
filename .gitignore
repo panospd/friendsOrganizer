@@ -4,3 +4,5 @@ FriendOrganizer.UI/obj/
 FriendOrganizer.DataAccess/bin/
 FriendOrganizer.DataAccess/obj/
 *.bat
+FriendOrganizer.Model/bin/
+FriendOrganizer.Model/obj/
