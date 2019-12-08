@@ -1,3 +1,6 @@
 .vs/
 FriendOrganizer.UI/bin/
 FriendOrganizer.UI/obj/
+FriendOrganizer.DataAccess/bin/
+FriendOrganizer.DataAccess/obj/
+*.bat
