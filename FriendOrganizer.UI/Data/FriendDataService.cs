@@ -1,35 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using FriendOrganizer.DataAccess;
 using FriendOrganizer.Model;
 
 namespace FriendOrganizer.UI.Data
 {
     public class FriendDataService : IFriendDataService
     {
-        public IEnumerable<Friend> GetAll()
+        private readonly Func<FriendOrganizerDbContext> _contextCreator;
+
+        public FriendDataService(Func<FriendOrganizerDbContext> contextCreator)
         {
-            yield return new Friend
-            {
-                FirstName = "Thomas",
-                LastName = "Huber"
-            };
+            _contextCreator = contextCreator;
+        }
 
-            yield return new Friend
+        public async Task<IEnumerable<Friend>> GetAllAsync()
+        {
+            using (var ctx = _contextCreator())
             {
-                FirstName = "Andreas",
-                LastName = "Boehler"
-            };
-
-            yield return new Friend
-            {
-                FirstName = "Julia",
-                LastName = "Huber"
-            };
-
-            yield return new Friend
-            {
-                FirstName = "Chrissi",
-                LastName = "Egin"
-            };
+                return await ctx.Friends.AsNoTracking().ToListAsync();
+            }
         }
     }
 }
