@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using FriendOrganizer.Model;
 using FriendOrganizer.UI.Data;
@@ -12,13 +13,16 @@ namespace FriendOrganizer.UI.ViewModel
     {
         private readonly IFriendLookupDataService _friendLookupDataService;
         private readonly IEventAggregator _eventAggregator;
-        private LookupItem _selectedFriend;
+        private NavigationItemViewModel _selectedFriend;
 
         public NavigationViewModel(IFriendLookupDataService friendLookupDataService, IEventAggregator eventAggregator)
         {
             _friendLookupDataService = friendLookupDataService;
             _eventAggregator = eventAggregator;
-            Friends = new ObservableCollection<LookupItem>();
+
+            _eventAggregator.GetEvent<AfterFriendSaveEvent>().Subscribe(AfterFriendSaved);
+
+            Friends = new ObservableCollection<NavigationItemViewModel>();
         }
 
         public async Task LoadAsync()
@@ -27,12 +31,12 @@ namespace FriendOrganizer.UI.ViewModel
             Friends.Clear();
 
             foreach (var item in lookups)
-                Friends.Add(item);
+                Friends.Add(new NavigationItemViewModel(item.Id, item.DisplayMember));
         }
 
-        public ObservableCollection<LookupItem> Friends { get; set; }
+        public ObservableCollection<NavigationItemViewModel> Friends { get; set; }
 
-        public LookupItem SelectedFriend
+        public NavigationItemViewModel SelectedFriend
         {
             get => _selectedFriend;
             set
@@ -48,6 +52,13 @@ namespace FriendOrganizer.UI.ViewModel
 
             if (_selectedFriend != null)
                 _eventAggregator.GetEvent<OpenFriendDetailViewEvent>().Publish(_selectedFriend.Id);
+        }
+
+        private void AfterFriendSaved(AfterFriendSaveEventArgs friendArgs)
+        {
+            NavigationItemViewModel friend = Friends.Single(f => f.Id == friendArgs.Id);
+
+            friend.DisplayMember = friendArgs.DisplayMember;
         }
     }
 }
