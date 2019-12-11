@@ -3,6 +3,7 @@ using System.Windows.Input;
 using FriendOrganizer.Model;
 using FriendOrganizer.UI.Data;
 using FriendOrganizer.UI.Event;
+using FriendOrganizer.UI.Wrapper;
 using Prism.Commands;
 using Prism.Events;
 
@@ -12,7 +13,7 @@ namespace FriendOrganizer.UI.ViewModel
     {
         private readonly IFriendDataService _friendDataService;
         private readonly IEventAggregator _eventAggregator;
-        private Friend _friend;
+        private FriendWrapper _friend;
 
         public FriendDetailViewModel(IFriendDataService friendDataService, IEventAggregator eventAggregator)
         {
@@ -23,28 +24,13 @@ namespace FriendOrganizer.UI.ViewModel
             _eventAggregator.GetEvent<OpenFriendDetailViewEvent>().Subscribe(OnOpenFriendDetailView);
         }
 
-        private bool OnsaveCanExecute()
-        {
-            return true;
-        }
-
-        private async void OnSaveExecute()
-        {
-            await _friendDataService.SaveAsync(Friend);
-
-            _eventAggregator.GetEvent<AfterFriendSaveEvent>().Publish(new AfterFriendSaveEventArgs
-            {
-                Id = Friend.Id,
-                DisplayMember = $"{Friend.FirstName} {Friend.LastName}" 
-            });
-        }
-
         public async Task LoadAsync(int friendId)
         {
-            Friend = await _friendDataService.GetByIdAsync(friendId);
+            Friend friend = await _friendDataService.GetByIdAsync(friendId);
+            Friend = new FriendWrapper(friend);
         }
 
-        public Friend Friend
+        public FriendWrapper Friend
         {
             get => _friend;
             set
@@ -59,6 +45,22 @@ namespace FriendOrganizer.UI.ViewModel
         private async void OnOpenFriendDetailView(int friendId)
         {
             await LoadAsync(friendId);
+        }
+
+        private bool OnsaveCanExecute()
+        {
+            return true;
+        }
+
+        private async void OnSaveExecute()
+        {
+            await _friendDataService.SaveAsync(Friend.Model);
+
+            _eventAggregator.GetEvent<AfterFriendSaveEvent>().Publish(new AfterFriendSaveEventArgs
+            {
+                Id = Friend.Id,
+                DisplayMember = $"{Friend.FirstName} {Friend.LastName}"
+            });
         }
     }
 }
