@@ -19,6 +19,7 @@ namespace FriendOrganizer.UI.ViewModel
         {
             _friendDataService = friendDataService;
             _eventAggregator = eventAggregator;
+
             SaveCommand = new DelegateCommand(OnSaveExecute, OnsaveCanExecute);
 
             _eventAggregator.GetEvent<OpenFriendDetailViewEvent>().Subscribe(OnOpenFriendDetailView);
@@ -28,6 +29,14 @@ namespace FriendOrganizer.UI.ViewModel
         {
             Friend friend = await _friendDataService.GetByIdAsync(friendId);
             Friend = new FriendWrapper(friend);
+
+            Friend.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(Friend.HasErrors))
+                    ((DelegateCommand) SaveCommand).RaiseCanExecuteChanged();
+            };
+
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
         }
 
         public FriendWrapper Friend
@@ -49,7 +58,10 @@ namespace FriendOrganizer.UI.ViewModel
 
         private bool OnsaveCanExecute()
         {
-            return true;
+            if (Friend == null)
+                return false;
+
+            return !Friend.HasErrors;
         }
 
         private async void OnSaveExecute()
